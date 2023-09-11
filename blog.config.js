@@ -399,13 +399,5 @@ const BLOG = {
   VERSION: process.env.NEXT_PUBLIC_VERSION // 版本号
 }
 
-//module.exports = BLOG
-module.exports = {
-  exportPathMap: function () {
-    return {
-      '/': { page: '/' },
-      // '/blog/nextjs': { page: '/blog/[post]/comment/[id]' },        // wrong
-      '/blog/nextjs/comment/1': { page: '/blog/[post]/comment/[id]' }, // correct
-    }
-  },
-}
+module.exports = BLOG
+
