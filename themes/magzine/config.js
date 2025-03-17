@@ -1,6 +1,6 @@
 const CONFIG = {
   // 首屏信息栏按钮文字
-  MAGZINE_HOME_BANNER_ENABLE: true, // 首屏右上角的宣传位
+  MAGZINE_HOME_BANNER_ENABLE: false, // 首屏右上角的宣传位
   MAGZINE_HOME_BUTTON: true,
   MAGZINE_HOME_BUTTON_URL: '/about',
   MAGZINE_HOME_BUTTON_TEXT: '了解更多',
@@ -31,13 +31,13 @@ const CONFIG = {
 
   // 文章页面联系卡
   MAGZINE_SOCIAL_CARD: true, // 是否显示右侧，点击加入社群按钮
-  MAGZINE_SOCIAL_CARD_TITLE_1: '交流频道',
-  MAGZINE_SOCIAL_CARD_TITLE_2: '加入社群讨论分享',
-  MAGZINE_SOCIAL_CARD_TITLE_3: '点击加入社群',
-  MAGZINE_SOCIAL_CARD_URL: 'https://docs.tangly1024.com/article/chat-community',
+  MAGZINE_SOCIAL_CARD_TITLE_1: '投稿入口',
+  MAGZINE_SOCIAL_CARD_TITLE_2: 'Submit your works',
+  MAGZINE_SOCIAL_CARD_TITLE_3: '点击这里/Click here',
+  MAGZINE_SOCIAL_CARD_URL: 'mailto://tidewavereport@gmail.com',
 
   // 页脚菜单
-  MAGZINE_FOOTER_LINKS: [
+  //MAGZINE_FOOTER_LINKS: [
     {
       name: '友情链接',
       menus: [
