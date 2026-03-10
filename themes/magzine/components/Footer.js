@@ -15,11 +15,11 @@ import SocialButton from './SocialButton'
 /**
  * Footer
  *
- * Key changes:
- * - Measure bottom-right AnalyticsBusuanzi position and apply a right-offset
- *   to the top-right column so Our Tenor and AnalyticsBusuanzi share the same vertical axis.
- * - Keeps Tenor popup fixed & centered relative to page container.
- * - Keeps DarkModeButton centered in bottom controls.
+ * - Left: site owner info (left aligned)
+ * - Right: Our Tenor (right aligned) + links (right aligned)
+ * - Our Tenor's right edge is aligned with the bottom-right AnalyticsBusuanzi right edge.
+ * - Tenor popup is fixed and centered relative to the page content area.
+ * - Bottom controls use a 3-column grid; AnalyticsBusuanzi appears only in the bottom-right column.
  */
 const Footer = ({ title }) => {
   const { siteInfo } = useGlobal()
@@ -34,7 +34,7 @@ const Footer = ({ title }) => {
   const topRightColRef = useRef(null) // top-right column to shift
 
   const [popupStyle, setPopupStyle] = useState({ left: 0, top: 0, visibility: 'hidden' })
-  const [topRightMarginRight, setTopRightMarginRight] = useState(0) // dynamic margin-right to align
+  const [topRightShiftX, setTopRightShiftX] = useState(0) // px to translate left (negative moves left)
 
   // detect touch device
   useEffect(() => {
@@ -95,31 +95,29 @@ const Footer = ({ title }) => {
     setPopupStyle({ left: Math.round(left), top: Math.round(top), visibility: 'visible' })
   }
 
-  // compute top-right margin so Our Tenor aligns with bottom analytics
+  // compute top-right shift so Our Tenor's right edge aligns with bottom analytics right edge
   const computeTopRightAlignment = () => {
     const analyticsEl = analyticsRef.current
     const containerEl = containerRef.current
     const topRightEl = topRightColRef.current
 
     if (!analyticsEl || !containerEl || !topRightEl) {
-      setTopRightMarginRight(0)
+      setTopRightShiftX(0)
       return
     }
 
     const analyticsRect = analyticsEl.getBoundingClientRect()
-    const containerRect = containerEl.getBoundingClientRect()
-    // desired right edge relative to container's right edge:
-    // compute how far analytics' right edge is from viewport right,
-    // then convert to margin-right relative to container.
-    const viewportWidth = window.innerWidth
-    const analyticsRightFromViewportRight = viewportWidth - analyticsRect.right
-    // container's right edge in viewport coordinates:
-    const containerRight = containerRect.right
-    // compute desired margin-right for top-right column so its right edge aligns with analyticsRect.right
-    // topRightMarginRight = containerRight - analyticsRect.right
-    const desiredMarginRight = Math.round(containerRight - analyticsRect.right)
-    // If negative, clamp to 0
-    setTopRightMarginRight(desiredMarginRight > 0 ? desiredMarginRight : 0)
+    const topRightRect = topRightEl.getBoundingClientRect()
+
+    // difference between top-right column right edge and analytics right edge
+    // positive diff means topRight is more to the right; we need to move it left by diff
+    const diff = Math.round(topRightRect.right - analyticsRect.right)
+
+    // apply small clamp to avoid huge shifts
+    const clamped = Math.abs(diff) > 200 ? (diff > 0 ? 200 : -200) : diff
+
+    // set negative translateX to move left when diff > 0
+    setTopRightShiftX(clamped > 0 ? -clamped : -clamped) // keep sign consistent
   }
 
   // recompute popup position when open
@@ -132,7 +130,7 @@ const Footer = ({ title }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenorOpen])
 
-  // recompute alignment on mount, resize, scroll
+  // recompute alignment on mount, resize, scroll, and mutation
   useEffect(() => {
     function handleResizeScroll() {
       computeTopRightAlignment()
@@ -143,9 +141,10 @@ const Footer = ({ title }) => {
 
     window.addEventListener('resize', handleResizeScroll)
     window.addEventListener('scroll', handleResizeScroll, true)
-    // also observe DOM changes that might affect layout
+
     const ro = new MutationObserver(() => computeTopRightAlignment())
     if (containerRef.current) ro.observe(containerRef.current, { childList: true, subtree: true, attributes: true })
+
     return () => {
       window.removeEventListener('resize', handleResizeScroll)
       window.removeEventListener('scroll', handleResizeScroll, true)
@@ -210,11 +209,11 @@ const Footer = ({ title }) => {
             <div />
 
             {/* Right column: Our Tenor (top) + links (right aligned)
-                Apply dynamic margin-right so its right edge aligns with bottom analytics */}
+                Apply dynamic translateX so its right edge aligns with bottom analytics */}
             <div
               ref={topRightColRef}
               className="flex flex-col items-end gap-4"
-              style={{ marginRight: topRightMarginRight }}
+              style={{ transform: `translateX(${topRightShiftX}px)` }}
             >
               {/* Our Tenor trigger aligned to the right edge of this column */}
               <div
