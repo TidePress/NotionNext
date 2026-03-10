@@ -13,7 +13,7 @@ export default function CTA({ notice }) {
       <div
         className="mx-auto px-4"
         style={{
-          maxWidth: '760px', // 缩窄到 760px
+          maxWidth: '640px', // 缩窄到 640px
           lineHeight: 1.12,
           letterSpacing: '-0.3px'
         }}
