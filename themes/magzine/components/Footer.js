@@ -15,14 +15,11 @@ import SocialButton from './SocialButton'
 /**
  * Footer
  *
- * Layout:
- *  - Grid with three columns inside the page container:
- *    left: site owner (left aligned)
- *    center: flexible spacer (fills available space)
- *    right: Our Tenor (top) + links + analytics (stacked)
- *
- *  This ensures Our Tenor and site owner remain on the same horizontal line,
- *  and Our Tenor aligns vertically with AnalyticsBusuanzi in the right column.
+ * - Left: site owner info (left aligned)
+ * - Right: Our Tenor (right aligned) + links (right aligned)
+ * - Both remain on the same horizontal line (grid with center spacer)
+ * - Tenor popup is fixed and centered relative to the page content area
+ * - Bottom controls use a 3-column grid; AnalyticsBusuanzi appears only in the bottom-right column
  */
 const Footer = ({ title }) => {
   const { siteInfo } = useGlobal()
@@ -167,7 +164,7 @@ const Footer = ({ title }) => {
             {/* Center spacer: fills available space to keep left and right on same line */}
             <div />
 
-            {/* Right column: Our Tenor (top) + links + analytics (stacked) */}
+            {/* Right column: Our Tenor (top) + links (right aligned) */}
             <div className="flex flex-col items-end gap-4">
               {/* Our Tenor trigger aligned to the right edge of this column */}
               <div
@@ -212,12 +209,6 @@ const Footer = ({ title }) => {
                   })}
                 </div>
               </div>
-
-              {/* Analytics and social (keeps aligned under Our Tenor) */}
-              <div className="flex items-center gap-x-4">
-                <AnalyticsBusuanzi />
-                <SocialButton />
-              </div>
             </div>
           </div>
         </div>
@@ -247,7 +238,7 @@ const Footer = ({ title }) => {
           </p>
         </div>
 
-        {/* Bottom controls: 3-column grid so DarkModeButton stays centered */}
+        {/* Bottom controls: 3-column grid so DarkModeButton stays centered and AnalyticsBusuanzi only appears here (right column) */}
         <div className="py-4 border-t border-gray-800 mt-6">
           <div className="max-w-screen-3xl w-full mx-auto grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
             {/* left column */}
@@ -261,10 +252,9 @@ const Footer = ({ title }) => {
               <DarkModeButton className="text-white" />
             </div>
 
-            {/* right column */}
+            {/* right column: AnalyticsBusuanzi + SocialButton */}
             <div className="flex justify-center sm:justify-end items-center gap-x-4">
               <div className="flex items-center gap-x-4">
-                {/* AnalyticsBusuanzi already appears in the top-right column; this is a duplicate placement if you want it here too */}
                 <AnalyticsBusuanzi />
                 <SocialButton />
               </div>
