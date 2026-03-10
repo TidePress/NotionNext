@@ -58,7 +58,7 @@ const Footer = ({ title }) => {
 
         </details>
       </div>
-</div>
+            
       <div className='max-w-screen-3xl w-full mx-auto '>
         {/* 信息与链接区块 */}
         <div className='w-full flex lg:flex-row flex-col justify-between py-16'>
