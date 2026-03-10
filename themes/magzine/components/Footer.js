@@ -17,7 +17,8 @@ import SocialButton from './SocialButton'
  *
  * - Left: site owner info (left aligned)
  * - Right: Our Tenor (right aligned) + links (right aligned)
- * - Our Tenor's right edge is aligned with the bottom-right AnalyticsBusuanzi right edge.
+ * - Our Tenor's right edge is aligned with the bottom-right AnalyticsBusuanzi right edge,
+ *   with an additional 10px left offset applied.
  * - Tenor popup is fixed and centered relative to the page content area.
  * - Bottom controls use a 3-column grid; AnalyticsBusuanzi appears only in the bottom-right column.
  */
@@ -34,7 +35,7 @@ const Footer = ({ title }) => {
   const topRightColRef = useRef(null) // top-right column to shift
 
   const [popupStyle, setPopupStyle] = useState({ left: 0, top: 0, visibility: 'hidden' })
-  const [topRightShiftX, setTopRightShiftX] = useState(0) // px to translate left (negative moves left)
+  const [topRightShiftX, setTopRightShiftX] = useState(0) // px to translate (negative moves left)
 
   // detect touch device
   useEffect(() => {
@@ -95,13 +96,13 @@ const Footer = ({ title }) => {
     setPopupStyle({ left: Math.round(left), top: Math.round(top), visibility: 'visible' })
   }
 
-  // compute top-right shift so Our Tenor's right edge aligns with bottom analytics right edge
+  // compute top-right shift so Our Tenor's right edge aligns with bottom analytics right edge,
+  // then apply an extra 10px left offset
   const computeTopRightAlignment = () => {
     const analyticsEl = analyticsRef.current
-    const containerEl = containerRef.current
     const topRightEl = topRightColRef.current
 
-    if (!analyticsEl || !containerEl || !topRightEl) {
+    if (!analyticsEl || !topRightEl) {
       setTopRightShiftX(0)
       return
     }
@@ -110,14 +111,16 @@ const Footer = ({ title }) => {
     const topRightRect = topRightEl.getBoundingClientRect()
 
     // difference between top-right column right edge and analytics right edge
-    // positive diff means topRight is more to the right; we need to move it left by diff
+    // positive diff means topRight is more to the right; we need to move it left by diff + 10px
     const diff = Math.round(topRightRect.right - analyticsRect.right)
 
-    // apply small clamp to avoid huge shifts
+    // clamp to avoid huge shifts
     const clamped = Math.abs(diff) > 200 ? (diff > 0 ? 200 : -200) : diff
 
-    // set negative translateX to move left when diff > 0
-    setTopRightShiftX(clamped > 0 ? -clamped : -clamped) // keep sign consistent
+    // apply extra 10px left offset (so Our Tenor moves 10px further left)
+    const shift = clamped > 0 ? -(clamped + 10) : -(clamped + 10)
+
+    setTopRightShiftX(shift)
   }
 
   // recompute popup position when open
@@ -209,7 +212,7 @@ const Footer = ({ title }) => {
             <div />
 
             {/* Right column: Our Tenor (top) + links (right aligned)
-                Apply dynamic translateX so its right edge aligns with bottom analytics */}
+                Apply dynamic translateX so its right edge aligns with bottom analytics (plus -10px) */}
             <div
               ref={topRightColRef}
               className="flex flex-col items-end gap-4"
