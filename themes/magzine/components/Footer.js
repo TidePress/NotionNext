@@ -19,31 +19,45 @@ const Footer = ({ title }) => {
   const MAGZINE_FOOTER_LINKS = siteConfig('MAGZINE_FOOTER_LINKS', [], CONFIG)
 
   return (
-<footer 
-    id='footer-bottom' 
-    className='z-10 bg-black text-white justify-center m-auto w-full p-6 relative'>
+    <footer
+      id='footer-bottom'
+      className='z-10 bg-black text-white justify-center m-auto w-full p-6 relative'
+    >
+      <div className="w-full flex justify-center my-4">
+        <style dangerouslySetInnerHTML={{__html: `
+          /* 隐藏浏览器默认的折叠黑三角 */
+          .custom-notice summary::-webkit-details-marker { display: none; }
+          .custom-notice summary { list-style: none; outline: none; }
+        `}} />
+        
+        {/* max-w-3xl 限制了最宽大概 768px，居中显示，阅读体验更好 */}
+        <details className="custom-notice w-full max-w-3xl" style={{ cursor: 'pointer', textAlign: 'center' }}>
+          
+          {/* 标题文字 "Our Tenor"：平时是浅灰，鼠标悬浮时变成纯白 */}
+          <summary className="font-bold text-neutral-400 hover:text-white transition-colors duration-300 py-2">
+            Our Tenor
+          </summary>
+          
+          {/* 展开后的文本框
+              bg-[#333333] 是接近 80% 黑的深灰背景
+              text-[#cccccc] 是接近 20% 黑的浅灰文字 
+              text-left 让长文本左对齐，更易于阅读
+              leading-relaxed 增加了行间距
+          */}
+          <div className="mt-4 text-sm text-[#cccccc] bg-[#333333] p-6 rounded-lg text-left leading-relaxed shadow-lg">
+            <p className="mb-3">
+              · This platform is intended to bring the perspicacity of the Chinese societies with an academic, philosophical and critical perspectives for the world.
+            </p>
+            <p className="mb-3">
+              · As a public and supportive community, we want the world to see the unheard voices of the era of China's transformationalisation.
+            </p>
+            <p className="mb-0">
+              · Our writing and commuting language are multi-lingual and inclusive with English (UK), française (FR) and Chinese (TC&SC).
+            </p>
+          </div>
 
-<div className="w-full flex justify-center my-4">
-  <style dangerouslySetInnerHTML={{__html: `
-    /* 隐藏浏览器默认的折叠黑三角 */
-    .custom-notice summary::-webkit-details-marker { display: none; }
-    .custom-notice summary { list-style: none; outline: none; }
-  `}} />
-  
-  <details className="custom-notice" style={{ cursor: 'pointer', textAlign: 'center' }}>
-    {/* summary 就是那句可点击的话 */}
-    <summary className="font-bold text-gray-500 hover:text-gray-700 transition-colors">
-      Our Tenor
-    </summary>
-    
-    {/* 下面是展开后的内容 */}
-    <div className="mt-2 text-sm text-gray-600 bg-gray-100 dark:bg-gray-800 p-4 rounded">
-      · This platform is intended to bring the perspicacity of the Chinese societies with an academic, philosophical and critical perspectives for the world<br/>
-      · As a public and supportive community, we want the world to see the unheard voices of the era of China's transformationalisation<br/>
-      · Our writing and commuting language are multi-lingual and inclusive with English (UK), française (FR) and Chinese (TC&SC)<br/>
-      完全不会有 Notion 自带的那个箭头符号！
-    </div>
-  </details>
+        </details>
+      </div>
 </div>
       <div className='max-w-screen-3xl w-full mx-auto '>
         {/* 信息与链接区块 */}
