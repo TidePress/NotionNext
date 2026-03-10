@@ -46,7 +46,6 @@ const Footer = ({ title }) => {
   </details>
 </div>
       
-      </div>
     </footer>
   )
 }
