@@ -16,11 +16,11 @@ import SocialButton from './SocialButton'
  * Footer
  *
  * - Left: site owner info (left aligned)
- * - Right: Our Tenor (right aligned) + links (right aligned)
- * - Our Tenor's right edge is aligned with the bottom-right AnalyticsBusuanzi right edge,
- *   with an additional 10px left offset applied.
- * - Tenor popup is fixed and centered relative to the page content area.
- * - Bottom controls use a 3-column grid; AnalyticsBusuanzi appears only in the bottom-right column.
+ * - Center: Our Tenor (always horizontally centered in page content area)
+ * - Right: links (right aligned)
+ * - Our Tenor and site owner remain on the same horizontal line (no wrapping)
+ * - Popup appears directly above and centered on the Our Tenor button (fixed positioning)
+ * - Hover (desktop) and click (touch) behaviors; Esc and outside click close popup
  */
 const Footer = ({ title }) => {
   const { siteInfo } = useGlobal()
@@ -31,11 +31,8 @@ const Footer = ({ title }) => {
   const buttonRef = useRef(null)
   const popupRef = useRef(null)
   const containerRef = useRef(null)
-  const analyticsRef = useRef(null) // bottom-right analytics ref
-  const topRightColRef = useRef(null) // top-right column to shift
 
   const [popupStyle, setPopupStyle] = useState({ left: 0, top: 0, visibility: 'hidden' })
-  const [topRightShiftX, setTopRightShiftX] = useState(0) // px to translate (negative moves left)
 
   // detect touch device
   useEffect(() => {
@@ -56,7 +53,7 @@ const Footer = ({ title }) => {
     return () => document.removeEventListener('click', handleDocClick)
   }, [])
 
-  // esc to close
+  // Esc to close
   useEffect(() => {
     function onKey(e) {
       if (e.key === 'Escape') setTenorOpen(false)
@@ -65,7 +62,7 @@ const Footer = ({ title }) => {
     return () => document.removeEventListener('keydown', onKey)
   }, [])
 
-  // compute popup position (fixed) so it won't be clipped
+  // compute popup position so it is centered on the Our Tenor button (fixed)
   const computePopupPosition = () => {
     const btn = buttonRef.current
     const popup = popupRef.current
@@ -77,53 +74,30 @@ const Footer = ({ title }) => {
 
     const btnRect = btn.getBoundingClientRect()
     const popupRect = popup.getBoundingClientRect()
-    const containerRect = container.getBoundingClientRect()
     const viewportWidth = window.innerWidth
     const viewportHeight = window.innerHeight
 
-    // Horizontal: center relative to container (page content area)
-    let containerCenterX = containerRect.left + containerRect.width / 2
-    let left = containerCenterX - popupRect.width / 2
+    // Center popup horizontally on the button center (so it appears directly above the button)
+    let left = btnRect.left + btnRect.width / 2 - popupRect.width / 2
     left = Math.max(8, Math.min(left, viewportWidth - popupRect.width - 8))
 
-    // Vertical: prefer above the button; fallback below
-    let top = btnRect.top - popupRect.height - 12
+    // Place popup so it overlaps the button vertically (directly above)
+    // We place it so its bottom edge sits 6px above the button center line,
+    // but ensure it stays within viewport.
+    let top = btnRect.top - popupRect.height / 2 - btnRect.height / 2 - 6
+    // If that would push popup off the top, fallback to above the button normally
     if (top < 8) {
-      top = btnRect.bottom + 12
-      top = Math.max(8, Math.min(top, viewportHeight - popupRect.height - 8))
+      top = btnRect.top - popupRect.height - 8
+    }
+    // If still not enough space, place below the button
+    if (top + popupRect.height > viewportHeight - 8) {
+      top = btnRect.bottom + 8
     }
 
     setPopupStyle({ left: Math.round(left), top: Math.round(top), visibility: 'visible' })
   }
 
-  // compute top-right shift so Our Tenor's right edge aligns with bottom analytics right edge,
-  // then apply an extra 10px left offset
-  const computeTopRightAlignment = () => {
-    const analyticsEl = analyticsRef.current
-    const topRightEl = topRightColRef.current
-
-    if (!analyticsEl || !topRightEl) {
-      setTopRightShiftX(0)
-      return
-    }
-
-    const analyticsRect = analyticsEl.getBoundingClientRect()
-    const topRightRect = topRightEl.getBoundingClientRect()
-
-    // difference between top-right column right edge and analytics right edge
-    // positive diff means topRight is more to the right; we need to move it left by diff + 10px
-    const diff = Math.round(topRightRect.right - analyticsRect.right)
-
-    // clamp to avoid huge shifts
-    const clamped = Math.abs(diff) > 200 ? (diff > 0 ? 200 : -200) : diff
-
-    // apply extra 10px left offset (so Our Tenor moves 10px further left)
-    const shift = clamped > 0 ? -(clamped + 10) : -(clamped + 10)
-
-    setTopRightShiftX(shift)
-  }
-
-  // recompute popup position when open
+  // recompute popup position when open and on resize/scroll
   useLayoutEffect(() => {
     if (tenorOpen) {
       computePopupPosition()
@@ -133,25 +107,15 @@ const Footer = ({ title }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenorOpen])
 
-  // recompute alignment on mount, resize, scroll, and mutation
   useEffect(() => {
     function handleResizeScroll() {
-      computeTopRightAlignment()
       if (tenorOpen) computePopupPosition()
     }
-    // initial compute after mount (give layout a tick)
-    setTimeout(() => computeTopRightAlignment(), 50)
-
     window.addEventListener('resize', handleResizeScroll)
     window.addEventListener('scroll', handleResizeScroll, true)
-
-    const ro = new MutationObserver(() => computeTopRightAlignment())
-    if (containerRef.current) ro.observe(containerRef.current, { childList: true, subtree: true, attributes: true })
-
     return () => {
       window.removeEventListener('resize', handleResizeScroll)
       window.removeEventListener('scroll', handleResizeScroll, true)
-      ro.disconnect()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenorOpen])
@@ -185,12 +149,12 @@ const Footer = ({ title }) => {
     >
       {/* page content container used as horizontal center reference */}
       <div ref={containerRef} className="max-w-screen-3xl w-full mx-auto relative">
-        {/* Top row: left site owner and right column on same line */}
+        {/* Top row: left site owner, center Our Tenor (centered), right links.
+            Use flex with no-wrap so they stay on one line; center column is centered via absolute centering. */}
         <div className="w-full py-6">
-          {/* Grid with three columns: left | center spacer | right column */}
-          <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4">
+          <div className="relative flex items-center justify-between gap-4 whitespace-nowrap">
             {/* Left: site owner info (left aligned) */}
-            <div className="flex items-center gap-x-3">
+            <div className="flex items-center gap-x-3 flex-shrink-0">
               <LazyImage
                 src={siteInfo?.icon}
                 className="rounded-full"
@@ -208,21 +172,15 @@ const Footer = ({ title }) => {
               </div>
             </div>
 
-            {/* Center spacer */}
-            <div />
-
-            {/* Right column: Our Tenor (top) + links (right aligned)
-                Apply dynamic translateX so its right edge aligns with bottom analytics (plus -10px) */}
+            {/* Centered Our Tenor: absolutely centered within the containerRef */}
             <div
-              ref={topRightColRef}
-              className="flex flex-col items-end gap-4"
-              style={{ transform: `translateX(${topRightShiftX}px)` }}
+              className="absolute left-1/2 transform -translate-x-1/2"
+              style={{ pointerEvents: 'none' }}
             >
-              {/* Our Tenor trigger aligned to the right edge of this column */}
               <div
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
-                className="relative"
+                style={{ pointerEvents: 'auto' }}
               >
                 <button
                   ref={buttonRef}
@@ -235,10 +193,12 @@ const Footer = ({ title }) => {
                   Our Tenor
                 </button>
               </div>
+            </div>
 
-              {/* Links block (right aligned) */}
-              <div className="hidden sm:block w-full">
-                <div className="grid grid-cols-2 lg:grid-cols-4 lg:gap-16 gap-6 justify-end">
+            {/* Right: links (right aligned) */}
+            <div className="flex items-center gap-x-6 flex-shrink-0">
+              <div className="hidden sm:block">
+                <div className="grid grid-cols-2 lg:grid-cols-4 lg:gap-16 gap-8">
                   {MAGZINE_FOOTER_LINKS?.map((group, index) => {
                     return (
                       <div key={index} className="text-right">
@@ -265,7 +225,7 @@ const Footer = ({ title }) => {
           </div>
         </div>
 
-        {/* Tenor popup fixed and horizontally centered relative to containerRef */}
+        {/* Popup: fixed and centered on the Our Tenor button (so it visually sits directly over it) */}
         <div
           ref={popupRef}
           onMouseEnter={() => !isTouchDevice && setTenorOpen(true)}
@@ -290,7 +250,7 @@ const Footer = ({ title }) => {
           </p>
         </div>
 
-        {/* Bottom controls: 3-column grid so DarkModeButton stays centered and AnalyticsBusuanzi only appears here (right column) */}
+        {/* Bottom controls: 3-column grid so DarkModeButton stays centered and AnalyticsBusuanzi appears in bottom-right */}
         <div className="py-4 border-t border-gray-800 mt-6">
           <div className="max-w-screen-3xl w-full mx-auto grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
             {/* left column */}
@@ -305,7 +265,7 @@ const Footer = ({ title }) => {
             </div>
 
             {/* right column: AnalyticsBusuanzi + SocialButton */}
-            <div className="flex justify-center sm:justify-end items-center gap-x-4" ref={analyticsRef}>
+            <div className="flex justify-center sm:justify-end items-center gap-x-4">
               <div className="flex items-center gap-x-4">
                 <AnalyticsBusuanzi />
                 <SocialButton />
