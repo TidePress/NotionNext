@@ -37,7 +37,7 @@ const CONFIG = {
   MAGZINE_SOCIAL_CARD_URL: 'mailto://tidewavereport@gmail.com',
 
   // 页脚菜单
-  MAGZINE_FOOTER_LINKS: [
+  /*MAGZINE_FOOTER_LINKS: [
     {
       name: '友情链接',
       menus: [
@@ -102,7 +102,7 @@ const CONFIG = {
         { title: 'NotionNext', href: 'https://docs.tangly1024.com/about' }
       ]
     }
-  ],
+  ],*/
 
   // 旧版本顶部菜单
   MAGZINE_MENU_CATEGORY: true, // 显示分类
