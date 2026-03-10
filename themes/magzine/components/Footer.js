@@ -15,15 +15,11 @@ import SocialButton from './SocialButton'
 /**
  * Footer
  *
- * Behavior summary
- * - The site-owner block (avatar / title / copyright) and the "Our Tenor" trigger
- *   remain on the same horizontal line at all viewport sizes.
- * - "Our Tenor" is visually centered relative to the page container while the
- *   site-owner block stays left-aligned. On very small screens both appear on
- *   the same line (center + left) rather than stacking.
- * - The Tenor popup is positioned fixed (above the trigger when possible) so it
- *   won't be clipped by the footer container.
- * - Hover (desktop) and click (touch) behaviors preserved; Esc and outside click close.
+ * - Left: site owner info (left aligned)
+ * - Right: Our Tenor trigger (right aligned)
+ * - Both remain on the same horizontal line at all viewport sizes (no wrapping)
+ * - Tenor popup is fixed and centered horizontally in the page content area
+ * - Bottom controls use a 3-column grid so DarkModeButton stays centered
  */
 const Footer = ({ title }) => {
   const { siteInfo } = useGlobal()
@@ -37,6 +33,7 @@ const Footer = ({ title }) => {
 
   const [popupStyle, setPopupStyle] = useState({ left: 0, top: 0, visibility: 'hidden' })
 
+  // Detect touch device
   useEffect(() => {
     const touch =
       typeof window !== 'undefined' &&
@@ -76,24 +73,26 @@ const Footer = ({ title }) => {
 
     const btnRect = btn.getBoundingClientRect()
     const popupRect = popup.getBoundingClientRect()
+    const containerRect = container.getBoundingClientRect()
     const viewportWidth = window.innerWidth
     const viewportHeight = window.innerHeight
 
-    // center horizontally on button center
-    let left = btnRect.left + btnRect.width / 2 - popupRect.width / 2
+    // Horizontal: center relative to container (page content area)
+    let containerCenterX = containerRect.left + containerRect.width / 2
+    let left = containerCenterX - popupRect.width / 2
     left = Math.max(8, Math.min(left, viewportWidth - popupRect.width - 8))
 
-    // prefer above the button
-    let top = btnRect.top - popupRect.height - 8
+    // Vertical: prefer above the button; fallback below
+    let top = btnRect.top - popupRect.height - 12
     if (top < 8) {
-      // fallback below the button
-      top = btnRect.bottom + 8
+      top = btnRect.bottom + 12
       top = Math.max(8, Math.min(top, viewportHeight - popupRect.height - 8))
     }
 
     setPopupStyle({ left: Math.round(left), top: Math.round(top), visibility: 'visible' })
   }
 
+  // Recompute when open, on resize and on scroll
   useLayoutEffect(() => {
     if (tenorOpen) {
       computePopupPosition()
@@ -116,6 +115,7 @@ const Footer = ({ title }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenorOpen])
 
+  // Hover / click handlers
   const handleMouseEnter = () => {
     if (!isTouchDevice) setTenorOpen(true)
   }
@@ -142,93 +142,84 @@ const Footer = ({ title }) => {
       id="footer-bottom"
       className="z-10 bg-black text-white justify-center m-auto w-full p-6 relative"
     >
-      {/* containerRef spans the page-width content area; Our Tenor will be centered relative to this */}
+      {/* page content container used as horizontal center reference */}
       <div ref={containerRef} className="max-w-screen-3xl w-full mx-auto relative">
-        {/* === Top row: site-owner (left) + Our Tenor (centered absolute) + links (right) === */}
-        <div className="w-full py-16">
-          {/* Row wrapper: keep the left block and the right block in flow.
-              The Our Tenor trigger is absolutely centered within containerRef so it
-              visually sits on the same horizontal line as the site-owner block. */}
-          <div className="relative flex items-center justify-between gap-4">
-            {/* Left: site-owner info (always on the same line) */}
-            <div className="flex items-center gap-x-3 whitespace-nowrap">
+        {/* Top row: left site owner and right Our Tenor on same line */}
+        <div className="w-full py-6">
+          {/* Use flex-nowrap so items never wrap; allow horizontal scroll on very small screens */}
+          <div className="flex items-center justify-between gap-4 flex-nowrap overflow-x-auto">
+            {/* Left: site owner info (always left aligned) */}
+            <div className="flex items-center gap-x-3 flex-shrink-0">
               <LazyImage
                 src={siteInfo?.icon}
                 className="rounded-full"
                 width={40}
                 alt={siteConfig('AUTHOR')}
               />
-              <div className="flex items-center gap-x-2">
-                <div>
-                  <h1 className="text-lg">{title}</h1>
-                  <div className="flex items-center">
-                    <i className="fas fa-copyright" />
-                    <a
-                      href={siteConfig('LINK')}
-                      className="underline font-bold ml-1"
-                    >
-                      {siteConfig('AUTHOR')}
-                    </a>
-                  </div>
+              <div className="leading-tight">
+                <div className="text-lg">{title}</div>
+                <div className="flex items-center text-sm text-neutral-300">
+                  <i className="fas fa-copyright" />
+                  <a href={siteConfig('LINK')} className="underline font-bold ml-1">
+                    {siteConfig('AUTHOR')}
+                  </a>
                 </div>
               </div>
             </div>
 
-            {/* Right: links (keeps its place on the right) */}
-            <div className="hidden sm:flex lg:grid lg:grid-cols-4 gap-8">
-              {/* keep original link rendering but hide on very small screens to avoid overlap */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 lg:gap-16 gap-8">
-                {MAGZINE_FOOTER_LINKS?.map((group, index) => {
-                  return (
-                    <div key={index}>
-                      <div className="font-bold text-xl text-white lg:pb-8 pb-4">
-                        {group.name}
+            {/* Spacer: keeps center area empty; grows to fill space */}
+            <div className="flex-1" />
+
+            {/* Right: Our Tenor and links */}
+            <div className="flex items-center gap-x-6 flex-shrink-0">
+              {/* Our Tenor trigger */}
+              <div
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+                className="relative"
+              >
+                <button
+                  ref={buttonRef}
+                  type="button"
+                  className="font-bold text-neutral-400 hover:text-white transition-colors duration-200 py-2 select-none"
+                  aria-expanded={tenorOpen}
+                  aria-haspopup="true"
+                  onClick={handleToggleClick}
+                >
+                  Our Tenor
+                </button>
+              </div>
+
+              {/* Links block (keeps on right) */}
+              <div className="hidden sm:block">
+                <div className="grid grid-cols-2 lg:grid-cols-4 lg:gap-16 gap-6">
+                  {MAGZINE_FOOTER_LINKS?.map((group, index) => {
+                    return (
+                      <div key={index}>
+                        <div className="font-bold text-xl text-white lg:pb-8 pb-4">
+                          {group.name}
+                        </div>
+                        <div className="flex flex-col gap-y-2">
+                          {group?.menus?.map((menu, i) => {
+                            return (
+                              <div key={i}>
+                                <SmartLink href={menu.href} className="hover:underline">
+                                  {menu.title}
+                                </SmartLink>
+                              </div>
+                            )
+                          })}
+                        </div>
                       </div>
-                      <div className="flex flex-col gap-y-2">
-                        {group?.menus?.map((menu, i) => {
-                          return (
-                            <div key={i}>
-                              <SmartLink href={menu.href} className="hover:underline">
-                                {menu.title}
-                              </SmartLink>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  )
-                })}
+                    )
+                  })}
+                </div>
               </div>
             </div>
-
-            {/* On very small screens we keep links below; the important part is the left + centered tenor stay on one line */}
           </div>
         </div>
 
-        {/* Our Tenor trigger: absolutely centered within the containerRef so it always sits on the same horizontal line */}
-        <div
-          className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"
-          style={{ pointerEvents: 'none' }} // allow the button itself to handle pointer events
-        >
-          <div
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            style={{ pointerEvents: 'auto' }}
-          >
-            <button
-              ref={buttonRef}
-              type="button"
-              className="font-bold text-neutral-400 hover:text-white transition-colors duration-200 py-2 select-none"
-              aria-expanded={tenorOpen}
-              aria-haspopup="true"
-              onClick={handleToggleClick}
-            >
-              Our Tenor
-            </button>
-          </div>
-        </div>
-
-        {/* Tenor popup (fixed) */}
+        {/* Tenor popup fixed and horizontally centered relative to containerRef */}
         <div
           ref={popupRef}
           onMouseEnter={() => !isTouchDevice && setTenorOpen(true)}
@@ -253,23 +244,31 @@ const Footer = ({ title }) => {
           </p>
         </div>
 
-        {/* === Bottom area: keep the original footer controls and备案 blocks === */}
-        <div className="py-4 flex flex-col lg:flex-row justify-between items-center border-t border-gray-800 mt-6">
-          <div className="flex gap-x-2 flex-wrap justify-between items-center">
-            <CopyRightDate />
-            <PoweredBy />
-          </div>
+        {/* Bottom controls: use 3-column grid so DarkModeButton stays centered */}
+        <div className="py-4 border-t border-gray-800 mt-6">
+          <div className="max-w-screen-3xl w-full mx-auto grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+            {/* left column */}
+            <div className="flex justify-center sm:justify-start items-center gap-x-2">
+              <CopyRightDate />
+              <PoweredBy />
+            </div>
 
-          <DarkModeButton className="text-white" />
+            {/* center column: DarkModeButton centered */}
+            <div className="flex justify-center items-center">
+              <DarkModeButton className="text-white" />
+            </div>
 
-          <div className="flex justify-between items-center gap-x-2">
-            <div className="flex items-center gap-x-4">
-              <AnalyticsBusuanzi />
-              <SocialButton />
+            {/* right column */}
+            <div className="flex justify-center sm:justify-end items-center gap-x-4">
+              <div className="flex items-center gap-x-4">
+                <AnalyticsBusuanzi />
+                <SocialButton />
+              </div>
             </div>
           </div>
         </div>
 
+        {/* 备案区块 */}
         <div className="w-full text-center flex flex-wrap items-center justify-center gap-x-2 text-neutral-500 mt-4">
           <BeiAnSite />
           <BeiAnGongAn />
