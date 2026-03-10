@@ -15,11 +15,11 @@ import SocialButton from './SocialButton'
 /**
  * Footer
  *
- * - Left: site owner info (left aligned)
- * - Right: Our Tenor (right aligned) + links (right aligned)
- * - Both remain on the same horizontal line (grid with center spacer)
- * - Tenor popup is fixed and centered relative to the page content area
- * - Bottom controls use a 3-column grid; AnalyticsBusuanzi appears only in the bottom-right column
+ * Key changes:
+ * - Measure bottom-right AnalyticsBusuanzi position and apply a right-offset
+ *   to the top-right column so Our Tenor and AnalyticsBusuanzi share the same vertical axis.
+ * - Keeps Tenor popup fixed & centered relative to page container.
+ * - Keeps DarkModeButton centered in bottom controls.
  */
 const Footer = ({ title }) => {
   const { siteInfo } = useGlobal()
@@ -30,9 +30,13 @@ const Footer = ({ title }) => {
   const buttonRef = useRef(null)
   const popupRef = useRef(null)
   const containerRef = useRef(null)
+  const analyticsRef = useRef(null) // bottom-right analytics ref
+  const topRightColRef = useRef(null) // top-right column to shift
 
   const [popupStyle, setPopupStyle] = useState({ left: 0, top: 0, visibility: 'hidden' })
+  const [topRightMarginRight, setTopRightMarginRight] = useState(0) // dynamic margin-right to align
 
+  // detect touch device
   useEffect(() => {
     const touch =
       typeof window !== 'undefined' &&
@@ -40,6 +44,7 @@ const Footer = ({ title }) => {
     setIsTouchDevice(Boolean(touch))
   }, [])
 
+  // click outside to close
   useEffect(() => {
     function handleDocClick(e) {
       if (buttonRef.current && buttonRef.current.contains(e.target)) return
@@ -50,6 +55,7 @@ const Footer = ({ title }) => {
     return () => document.removeEventListener('click', handleDocClick)
   }, [])
 
+  // esc to close
   useEffect(() => {
     function onKey(e) {
       if (e.key === 'Escape') setTenorOpen(false)
@@ -58,6 +64,7 @@ const Footer = ({ title }) => {
     return () => document.removeEventListener('keydown', onKey)
   }, [])
 
+  // compute popup position (fixed) so it won't be clipped
   const computePopupPosition = () => {
     const btn = buttonRef.current
     const popup = popupRef.current
@@ -88,6 +95,34 @@ const Footer = ({ title }) => {
     setPopupStyle({ left: Math.round(left), top: Math.round(top), visibility: 'visible' })
   }
 
+  // compute top-right margin so Our Tenor aligns with bottom analytics
+  const computeTopRightAlignment = () => {
+    const analyticsEl = analyticsRef.current
+    const containerEl = containerRef.current
+    const topRightEl = topRightColRef.current
+
+    if (!analyticsEl || !containerEl || !topRightEl) {
+      setTopRightMarginRight(0)
+      return
+    }
+
+    const analyticsRect = analyticsEl.getBoundingClientRect()
+    const containerRect = containerEl.getBoundingClientRect()
+    // desired right edge relative to container's right edge:
+    // compute how far analytics' right edge is from viewport right,
+    // then convert to margin-right relative to container.
+    const viewportWidth = window.innerWidth
+    const analyticsRightFromViewportRight = viewportWidth - analyticsRect.right
+    // container's right edge in viewport coordinates:
+    const containerRight = containerRect.right
+    // compute desired margin-right for top-right column so its right edge aligns with analyticsRect.right
+    // topRightMarginRight = containerRight - analyticsRect.right
+    const desiredMarginRight = Math.round(containerRight - analyticsRect.right)
+    // If negative, clamp to 0
+    setTopRightMarginRight(desiredMarginRight > 0 ? desiredMarginRight : 0)
+  }
+
+  // recompute popup position when open
   useLayoutEffect(() => {
     if (tenorOpen) {
       computePopupPosition()
@@ -97,19 +132,29 @@ const Footer = ({ title }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenorOpen])
 
+  // recompute alignment on mount, resize, scroll
   useEffect(() => {
     function handleResizeScroll() {
+      computeTopRightAlignment()
       if (tenorOpen) computePopupPosition()
     }
+    // initial compute after mount (give layout a tick)
+    setTimeout(() => computeTopRightAlignment(), 50)
+
     window.addEventListener('resize', handleResizeScroll)
     window.addEventListener('scroll', handleResizeScroll, true)
+    // also observe DOM changes that might affect layout
+    const ro = new MutationObserver(() => computeTopRightAlignment())
+    if (containerRef.current) ro.observe(containerRef.current, { childList: true, subtree: true, attributes: true })
     return () => {
       window.removeEventListener('resize', handleResizeScroll)
       window.removeEventListener('scroll', handleResizeScroll, true)
+      ro.disconnect()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenorOpen])
 
+  // hover / click handlers
   const handleMouseEnter = () => {
     if (!isTouchDevice) setTenorOpen(true)
   }
@@ -161,11 +206,16 @@ const Footer = ({ title }) => {
               </div>
             </div>
 
-            {/* Center spacer: fills available space to keep left and right on same line */}
+            {/* Center spacer */}
             <div />
 
-            {/* Right column: Our Tenor (top) + links (right aligned) */}
-            <div className="flex flex-col items-end gap-4">
+            {/* Right column: Our Tenor (top) + links (right aligned)
+                Apply dynamic margin-right so its right edge aligns with bottom analytics */}
+            <div
+              ref={topRightColRef}
+              className="flex flex-col items-end gap-4"
+              style={{ marginRight: topRightMarginRight }}
+            >
               {/* Our Tenor trigger aligned to the right edge of this column */}
               <div
                 onMouseEnter={handleMouseEnter}
@@ -253,7 +303,7 @@ const Footer = ({ title }) => {
             </div>
 
             {/* right column: AnalyticsBusuanzi + SocialButton */}
-            <div className="flex justify-center sm:justify-end items-center gap-x-4">
+            <div className="flex justify-center sm:justify-end items-center gap-x-4" ref={analyticsRef}>
               <div className="flex items-center gap-x-4">
                 <AnalyticsBusuanzi />
                 <SocialButton />
