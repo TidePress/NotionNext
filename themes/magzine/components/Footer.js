@@ -15,11 +15,14 @@ import SocialButton from './SocialButton'
 /**
  * Footer
  *
- * - Left: site owner info (left aligned)
- * - Right: Our Tenor trigger (right aligned)
- * - Both remain on the same horizontal line at all viewport sizes (no wrapping)
- * - Tenor popup is fixed and centered horizontally in the page content area
- * - Bottom controls use a 3-column grid so DarkModeButton stays centered
+ * Layout:
+ *  - Grid with three columns inside the page container:
+ *    left: site owner (left aligned)
+ *    center: flexible spacer (fills available space)
+ *    right: Our Tenor (top) + links + analytics (stacked)
+ *
+ *  This ensures Our Tenor and site owner remain on the same horizontal line,
+ *  and Our Tenor aligns vertically with AnalyticsBusuanzi in the right column.
  */
 const Footer = ({ title }) => {
   const { siteInfo } = useGlobal()
@@ -33,7 +36,6 @@ const Footer = ({ title }) => {
 
   const [popupStyle, setPopupStyle] = useState({ left: 0, top: 0, visibility: 'hidden' })
 
-  // Detect touch device
   useEffect(() => {
     const touch =
       typeof window !== 'undefined' &&
@@ -41,7 +43,6 @@ const Footer = ({ title }) => {
     setIsTouchDevice(Boolean(touch))
   }, [])
 
-  // Click outside to close
   useEffect(() => {
     function handleDocClick(e) {
       if (buttonRef.current && buttonRef.current.contains(e.target)) return
@@ -52,7 +53,6 @@ const Footer = ({ title }) => {
     return () => document.removeEventListener('click', handleDocClick)
   }, [])
 
-  // Esc to close
   useEffect(() => {
     function onKey(e) {
       if (e.key === 'Escape') setTenorOpen(false)
@@ -61,7 +61,6 @@ const Footer = ({ title }) => {
     return () => document.removeEventListener('keydown', onKey)
   }, [])
 
-  // Compute fixed popup position so it won't be clipped by footer container
   const computePopupPosition = () => {
     const btn = buttonRef.current
     const popup = popupRef.current
@@ -92,7 +91,6 @@ const Footer = ({ title }) => {
     setPopupStyle({ left: Math.round(left), top: Math.round(top), visibility: 'visible' })
   }
 
-  // Recompute when open, on resize and on scroll
   useLayoutEffect(() => {
     if (tenorOpen) {
       computePopupPosition()
@@ -115,7 +113,6 @@ const Footer = ({ title }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenorOpen])
 
-  // Hover / click handlers
   const handleMouseEnter = () => {
     if (!isTouchDevice) setTenorOpen(true)
   }
@@ -144,12 +141,12 @@ const Footer = ({ title }) => {
     >
       {/* page content container used as horizontal center reference */}
       <div ref={containerRef} className="max-w-screen-3xl w-full mx-auto relative">
-        {/* Top row: left site owner and right Our Tenor on same line */}
+        {/* Top row: left site owner and right column on same line */}
         <div className="w-full py-6">
-          {/* Use flex-nowrap so items never wrap; allow horizontal scroll on very small screens */}
-          <div className="flex items-center justify-between gap-4 flex-nowrap overflow-x-auto">
-            {/* Left: site owner info (always left aligned) */}
-            <div className="flex items-center gap-x-3 flex-shrink-0">
+          {/* Grid with three columns: left | center spacer | right column */}
+          <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4">
+            {/* Left: site owner info (left aligned) */}
+            <div className="flex items-center gap-x-3">
               <LazyImage
                 src={siteInfo?.icon}
                 className="rounded-full"
@@ -167,12 +164,12 @@ const Footer = ({ title }) => {
               </div>
             </div>
 
-            {/* Spacer: keeps center area empty; grows to fill space */}
-            <div className="flex-1" />
+            {/* Center spacer: fills available space to keep left and right on same line */}
+            <div />
 
-            {/* Right: Our Tenor and links */}
-            <div className="flex items-center gap-x-6 flex-shrink-0">
-              {/* Our Tenor trigger */}
+            {/* Right column: Our Tenor (top) + links + analytics (stacked) */}
+            <div className="flex flex-col items-end gap-4">
+              {/* Our Tenor trigger aligned to the right edge of this column */}
               <div
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
@@ -190,16 +187,16 @@ const Footer = ({ title }) => {
                 </button>
               </div>
 
-              {/* Links block (keeps on right) */}
-              <div className="hidden sm:block">
-                <div className="grid grid-cols-2 lg:grid-cols-4 lg:gap-16 gap-6">
+              {/* Links block (right aligned) */}
+              <div className="hidden sm:block w-full">
+                <div className="grid grid-cols-2 lg:grid-cols-4 lg:gap-16 gap-6 justify-end">
                   {MAGZINE_FOOTER_LINKS?.map((group, index) => {
                     return (
-                      <div key={index}>
+                      <div key={index} className="text-right">
                         <div className="font-bold text-xl text-white lg:pb-8 pb-4">
                           {group.name}
                         </div>
-                        <div className="flex flex-col gap-y-2">
+                        <div className="flex flex-col gap-y-2 items-end">
                           {group?.menus?.map((menu, i) => {
                             return (
                               <div key={i}>
@@ -214,6 +211,12 @@ const Footer = ({ title }) => {
                     )
                   })}
                 </div>
+              </div>
+
+              {/* Analytics and social (keeps aligned under Our Tenor) */}
+              <div className="flex items-center gap-x-4">
+                <AnalyticsBusuanzi />
+                <SocialButton />
               </div>
             </div>
           </div>
@@ -244,7 +247,7 @@ const Footer = ({ title }) => {
           </p>
         </div>
 
-        {/* Bottom controls: use 3-column grid so DarkModeButton stays centered */}
+        {/* Bottom controls: 3-column grid so DarkModeButton stays centered */}
         <div className="py-4 border-t border-gray-800 mt-6">
           <div className="max-w-screen-3xl w-full mx-auto grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
             {/* left column */}
@@ -261,6 +264,7 @@ const Footer = ({ title }) => {
             {/* right column */}
             <div className="flex justify-center sm:justify-end items-center gap-x-4">
               <div className="flex items-center gap-x-4">
+                {/* AnalyticsBusuanzi already appears in the top-right column; this is a duplicate placement if you want it here too */}
                 <AnalyticsBusuanzi />
                 <SocialButton />
               </div>
