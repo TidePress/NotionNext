@@ -50,7 +50,7 @@ const Footer = ({ title }) => {
     return () => document.removeEventListener('keydown', onKey)
   }, [])
 
-  // Compute popup position: always center in viewport (Scheme A: vertical center)
+  // Compute popup position: horizontal center, vertical at ~12% from top (Scheme B)
   const computePopupPosition = () => {
     const popup = popupRef.current
     if (!popup) {
@@ -65,8 +65,8 @@ const Footer = ({ title }) => {
     // Horizontal center
     const left = Math.max(8, Math.round((viewportWidth - popupRect.width) / 2))
 
-    // Vertical center (Scheme A)
-    const top = Math.max(8, Math.round((viewportHeight - popupRect.height) / 2))
+    // Vertical position: 12% from top (Scheme B)
+    const top = Math.max(8, Math.round(viewportHeight * 0.12))
 
     setPopupStyle({ left, top, visibility: 'visible' })
   }
@@ -74,7 +74,6 @@ const Footer = ({ title }) => {
   useLayoutEffect(() => {
     if (tenorOpen) {
       // ensure popup is rendered before measuring
-      // small timeout helps when popup content size depends on fonts/images
       const id = setTimeout(() => computePopupPosition(), 0)
       return () => clearTimeout(id)
     } else {
@@ -165,7 +164,7 @@ const Footer = ({ title }) => {
           <Announcement post={siteInfo?.notice} className="" />
         </div>
 
-        {/* 弹窗：fixed 居中（水平与垂直居中，Scheme A） */}
+        {/* 弹窗：fixed 居中水平，垂直靠上 12%（Scheme B） */}
         <div
           ref={popupRef}
           onMouseEnter={() => !isTouchDevice && setTenorOpen(true)}
