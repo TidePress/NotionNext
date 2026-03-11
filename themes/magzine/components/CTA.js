@@ -14,7 +14,7 @@ export default function CTA({ notice }) {
         className="mx-auto px-4"
         style={{
           maxWidth: '350px', // <- 更窄
-          lineHeight: 1.08,
+          lineHeight: 1.12,
           letterSpacing: '-0.35px'
         }}
       >
