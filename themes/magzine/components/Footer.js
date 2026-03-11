@@ -21,7 +21,7 @@ const Footer = ({ title }) => {
   const [isTouchDevice, setIsTouchDevice] = useState(false)
   const buttonRef = useRef(null)
   const popupRef = useRef(null)
-  const containerRef = useRef(null)
+  const containerRef = useRef(null) // footer 内部主容器
 
   const [popupStyle, setPopupStyle] = useState({ left: 0, top: 0, visibility: 'hidden' })
 
@@ -50,30 +50,49 @@ const Footer = ({ title }) => {
     return () => document.removeEventListener('keydown', onKey)
   }, [])
 
-  // Compute popup position: horizontal center, vertical at ~12% from top (Scheme B)
+  /**
+   * computePopupPosition
+   * - 水平居中于视口（与之前一致）
+   * - 垂直位置：**居中于 footer 容器区域**（确保弹窗显示在黑色 banner 内）
+   * - 若弹窗高度大于 footer 高度：把弹窗顶对齐 footer 内部并允许纵向滚动（避免遮挡 CTA）
+   */
   const computePopupPosition = () => {
     const popup = popupRef.current
-    if (!popup) {
+    const container = containerRef.current
+    if (!popup || !container) {
       setPopupStyle((s) => ({ ...s, visibility: 'hidden' }))
       return
     }
 
     const popupRect = popup.getBoundingClientRect()
+    const containerRect = container.getBoundingClientRect()
     const viewportWidth = window.innerWidth
     const viewportHeight = window.innerHeight
 
-    // Horizontal center
+    // 水平居中（相对于视口）
     const left = Math.max(8, Math.round((viewportWidth - popupRect.width) / 2))
 
-    // Vertical position: 12% from top (Scheme B)
-    const top = Math.max(8, Math.round(viewportHeight * 0.12))
+    // 计算垂直位置：居中于 footer container 的可视区域
+    // containerRect.top/height 是相对于视口的值
+    const containerTop = Math.max(8, Math.round(containerRect.top))
+    const containerHeight = Math.round(containerRect.height)
 
-    setPopupStyle({ left, top, visibility: 'visible' })
+    // 如果 popup 高度能放下，则垂直居中于 container
+    if (popupRect.height <= containerHeight - 16) {
+      const top = Math.max(8, Math.round(containerTop + (containerHeight - popupRect.height) / 2))
+      setPopupStyle({ left, top, visibility: 'visible' })
+    } else {
+      // popup 比 footer 高：把 popup 顶部对齐 footer 内部并允许纵向滚动
+      const top = Math.max(8, containerTop + 8)
+      // 限制最大高度并启用内部滚动（通过样式类）
+      setPopupStyle({ left, top, visibility: 'visible' })
+      // 通过 inline style below we will set maxHeight when rendering
+    }
   }
 
   useLayoutEffect(() => {
     if (tenorOpen) {
-      // ensure popup is rendered before measuring
+      // 等待 popup 渲染完成后测量
       const id = setTimeout(() => computePopupPosition(), 0)
       return () => clearTimeout(id)
     } else {
@@ -119,6 +138,7 @@ const Footer = ({ title }) => {
 
   return (
     <footer id="footer-bottom" className="z-10 bg-black text-white w-full p-6 relative">
+      {/* containerRef 指向 footer 内部主容器（用于计算弹窗应位于此区域内） */}
       <div ref={containerRef} className="max-w-screen-3xl w-full mx-auto">
 
         {/* 顶部：图标 + 右侧三行信息（Tide Press / © Tide Press / Our Tenor） */}
@@ -132,16 +152,13 @@ const Footer = ({ title }) => {
           />
 
           <div className="flex flex-col leading-tight">
-            {/* 第一行：站点名 */}
             <div className="text-lg font-semibold text-white">{title}</div>
 
-            {/* 第二行：版权 */}
             <div className="text-sm text-neutral-300 flex items-center">
               <i className="fas fa-copyright" />
               <span className="ml-1">{siteConfig('AUTHOR')}</span>
             </div>
 
-            {/* 第三行：Our Tenor（与版权字体一致） */}
             <div className="mt-1">
               <button
                 ref={buttonRef}
@@ -164,7 +181,7 @@ const Footer = ({ title }) => {
           <Announcement post={siteInfo?.notice} className="" />
         </div>
 
-        {/* 弹窗：fixed 居中水平，垂直靠上 12%（Scheme B） */}
+        {/* 弹窗：fixed，但垂直位置受 footer container 限制，若弹窗高于 footer 则启用内部滚动 */}
         <div
           ref={popupRef}
           onMouseEnter={() => !isTouchDevice && setTenorOpen(true)}
@@ -179,18 +196,26 @@ const Footer = ({ title }) => {
           }}
           className="w-[85vw] sm:w-[420px] lg:w-[520px] text-sm text-[#e6e6e6] bg-[#333333] p-5 rounded-lg leading-relaxed shadow-2xl border border-neutral-700 pointer-events-auto"
         >
-          <p className="mb-2">
-            · This platform is intended to bring the perspicacity of the Chinese societies with an academic, philosophical and critical perspectives for the world.
-          </p>
-          <p className="mb-2">
-            · As a public and supportive community, we want the world to see the unheard voices of the era of China's transformationalisation.
-          </p>
-          <p className="mb-0">
-            · Our writing and commuting language are multi-lingual and inclusive with English (UK), française (FR) and Chinese (TC&SC).
-          </p>
+          {/* 当弹窗高度可能超过 footer 时，允许内部滚动并限制最大高度 */}
+          <div
+            style={{
+              maxHeight: '60vh',
+              overflowY: 'auto'
+            }}
+          >
+            <p className="mb-2">
+              · This platform is intended to bring the perspicacity of the Chinese societies with an academic, philosophical and critical perspectives for the world.
+            </p>
+            <p className="mb-2">
+              · As a public and supportive community, we want the world to see the unheard voices of the era of China's transformationalisation.
+            </p>
+            <p className="mb-0">
+              · Our writing and commuting language are multi-lingual and inclusive with English (UK), française (FR) and Chinese (TC&SC).
+            </p>
+          </div>
         </div>
 
-        {/* 底部控制区：三列布局（左：CopyRight/PoweredBy；中：DarkMode；右：Analytics/Social） */}
+        {/* 底部控制区 */}
         <div className="py-4 border-t border-gray-800 mt-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
             <div className="flex justify-center sm:justify-start items-center gap-x-2">
@@ -217,7 +242,7 @@ const Footer = ({ title }) => {
           <BeiAnGongAn />
         </div>
 
-        {/* 右下可选的 footer links（保留原有链接布局） */}
+        {/* footer links */}
         <div className="hidden sm:block mt-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 lg:gap-16 gap-8">
             {MAGZINE_FOOTER_LINKS?.map((group, index) => {
