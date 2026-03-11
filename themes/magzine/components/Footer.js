@@ -210,7 +210,7 @@ const Footer = ({ title }) => {
               · As a public and supportive community, we want the world to see the unheard voices of the era of China's transformationalisation.
             </p>
             <p className="mb-0">
-              · Our writing and commuting language are multi-lingual and inclusive with English (UK), française (FR) and Chinese (TC&SC).
+              · Our writing and commuting language are multi-lingual and inclusive with English (UK&US), française (FR&CA) and Chinese (TC&SC).
             </p>
           </div>
         </div>
