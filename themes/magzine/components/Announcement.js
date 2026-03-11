@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 const NotionPage = dynamic(() => import('@/components/NotionPage'))
 
 /**
- * Announcement：渲染 NotionPage，并对指定句子应用不换行与自适应缩放
+ * Announcement：渲染 NotionPage，并对指定句子应用不换行与更激进的自适应缩放
  */
 const Announcement = ({ post, className = '' }) => {
   const containerRef = useRef(null)
@@ -17,44 +17,50 @@ const Announcement = ({ post, className = '' }) => {
         const container = containerRef.current
         if (!container) return
 
-        // 精确要保持在同一行的完整句子（按需修改为你页面上的确切文本）
+        // 请确保与页面上该句完全一致（包括大小写与标点）
         const exactSentence = 'Welcome to contributing your works to our society'
 
-        // 查找所有段落并匹配文本（p, li, div 以兼容不同 Notion 渲染）
+        // 查找所有可能的文本节点（p, li, div）
         const nodes = container.querySelectorAll('p, li, div')
         nodes.forEach((el) => {
           const text = (el.textContent || '').trim()
           if (!text) return
           if (!text.includes(exactSentence)) return
 
-          // 应用不换行样式
+          // 强制不换行与保持单词完整
           el.classList.add('tn-no-wrap')
 
-          // 自适应缩放：逐像素减小字号直到不溢出或达到最小字号
+          // 读取父容器宽度（内层限制宽度）
           const parentWidth = container.clientWidth || container.getBoundingClientRect().width
           const computeFits = () => el.scrollWidth <= parentWidth + 1 // 允许 1px 容差
 
+          // 初始字号（读取当前计算值或默认 16px）
           const style = window.getComputedStyle(el)
           let fontSizePx = parseFloat(style.fontSize) || 16
-          const minFontSizeDesktop = 11
-          const minFontSizeMobile = 10
+
+          // 更激进的最小字号以便在 320px 容器内适配
+          const minFontSizeDesktop = 9
+          const minFontSizeMobile = 8
           const isMobile = window.innerWidth <= 420
           const minFontSize = isMobile ? minFontSizeMobile : minFontSizeDesktop
 
-          // 如果初始就不换行但溢出（scrollWidth > parentWidth），逐步缩小
+          // 允许更紧的字间距以帮助适配
+          el.style.letterSpacing = '-0.6px'
+
+          // 逐像素减小字号直到适配或达到最小字号
           let safety = 0
-          while (!computeFits() && fontSizePx > minFontSize && safety < 30) {
+          while (!computeFits() && fontSizePx > minFontSize && safety < 40) {
             fontSizePx = Math.max(minFontSize, fontSizePx - 1)
             el.style.fontSize = fontSizePx + 'px'
             safety += 1
           }
 
-          // 如果仍然不适配（极端窄屏），允许换行作为最后回退
+          // 最后回退：若仍不适配（极窄屏或极端内容），允许换行以保证可读性
           if (!computeFits()) {
             el.classList.remove('tn-no-wrap')
             el.style.whiteSpace = 'normal'
+            el.style.letterSpacing = '-0.35px'
           } else {
-            // 保证不被裁剪
             el.style.overflow = 'visible'
           }
         })
@@ -78,8 +84,8 @@ const Announcement = ({ post, className = '' }) => {
         /* 更窄的全局排版（更紧凑） */
         #announcement-content :global(p),
         #announcement-content :global(li) {
-          line-height: 1.00 !important;        /* 更窄行高 */
-          letter-spacing: -0.45px !important;  /* 更紧字间距 */
+          line-height: 0.98 !important;
+          letter-spacing: -0.45px !important;
           margin-bottom: 0.22rem !important;
           color: inherit !important;
           font-size: 0.94rem !important;
@@ -95,11 +101,12 @@ const Announcement = ({ post, className = '' }) => {
           font-size: 0.98rem !important;
         }
 
-        /* 不换行样式（用于精确匹配的句子） */
+        /* 精确匹配句子时使用：强制不换行并保持单词完整 */
         .tn-no-wrap {
           white-space: nowrap !important;
           display: inline-block !important;
-          line-height: 1.00 !important;
+          line-height: 0.98 !important;
+          word-break: keep-all !important;
         }
 
         /* 移除 Notion 渲染器可能带来的白色背景/内边距/阴影 */
