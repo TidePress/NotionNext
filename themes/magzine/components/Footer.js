@@ -50,37 +50,33 @@ const Footer = ({ title }) => {
     return () => document.removeEventListener('keydown', onKey)
   }, [])
 
+  // Compute popup position: always center in viewport (Scheme A: vertical center)
   const computePopupPosition = () => {
-    const btn = buttonRef.current
     const popup = popupRef.current
-    const container = containerRef.current
-    if (!btn || !popup || !container) {
+    if (!popup) {
       setPopupStyle((s) => ({ ...s, visibility: 'hidden' }))
       return
     }
 
-    const btnRect = btn.getBoundingClientRect()
     const popupRect = popup.getBoundingClientRect()
     const viewportWidth = window.innerWidth
     const viewportHeight = window.innerHeight
 
-    let left = btnRect.left + btnRect.width / 2 - popupRect.width / 2
-    left = Math.max(8, Math.min(left, viewportWidth - popupRect.width - 8))
+    // Horizontal center
+    const left = Math.max(8, Math.round((viewportWidth - popupRect.width) / 2))
 
-    let top = btnRect.top - popupRect.height / 2 - btnRect.height / 2 - 6
-    if (top < 8) {
-      top = btnRect.top - popupRect.height - 8
-    }
-    if (top + popupRect.height > viewportHeight - 8) {
-      top = btnRect.bottom + 8
-    }
+    // Vertical center (Scheme A)
+    const top = Math.max(8, Math.round((viewportHeight - popupRect.height) / 2))
 
-    setPopupStyle({ left: Math.round(left), top: Math.round(top), visibility: 'visible' })
+    setPopupStyle({ left, top, visibility: 'visible' })
   }
 
   useLayoutEffect(() => {
     if (tenorOpen) {
-      computePopupPosition()
+      // ensure popup is rendered before measuring
+      // small timeout helps when popup content size depends on fonts/images
+      const id = setTimeout(() => computePopupPosition(), 0)
+      return () => clearTimeout(id)
     } else {
       setPopupStyle((s) => ({ ...s, visibility: 'hidden' }))
     }
@@ -169,7 +165,7 @@ const Footer = ({ title }) => {
           <Announcement post={siteInfo?.notice} className="" />
         </div>
 
-        {/* 弹窗：fixed 定位，居中于 Our Tenor 按钮 */}
+        {/* 弹窗：fixed 居中（水平与垂直居中，Scheme A） */}
         <div
           ref={popupRef}
           onMouseEnter={() => !isTouchDevice && setTenorOpen(true)}
@@ -179,7 +175,8 @@ const Footer = ({ title }) => {
             left: popupStyle.left,
             top: popupStyle.top,
             visibility: popupStyle.visibility,
-            zIndex: 9999
+            zIndex: 9999,
+            transform: 'none'
           }}
           className="w-[85vw] sm:w-[420px] lg:w-[520px] text-sm text-[#e6e6e6] bg-[#333333] p-5 rounded-lg leading-relaxed shadow-2xl border border-neutral-700 pointer-events-auto"
         >
