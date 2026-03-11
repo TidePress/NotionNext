@@ -13,9 +13,9 @@ export default function CTA({ notice }) {
       <div
         className="mx-auto px-4"
         style={{
-          maxWidth: '350px', // <- 更窄
+          maxWidth: '450px', // <- 更窄
           lineHeight: 1.12,
-          letterSpacing: '-0.35px'
+          letterSpacing: '-0.3px'
         }}
       >
         <Announcement post={notice} className="text-center text-black" />
