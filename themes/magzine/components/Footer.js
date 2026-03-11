@@ -11,17 +11,8 @@ import { useGlobal } from '@/lib/global'
 import SmartLink from '@/components/SmartLink'
 import CONFIG from '../config'
 import SocialButton from './SocialButton'
+import Announcement from './Announcement'
 
-/**
- * Footer
- *
- * - Left: site owner info (left aligned)
- * - Center: Our Tenor (always horizontally centered in page content area)
- * - Right: links (right aligned)
- * - Our Tenor and site owner remain on the same horizontal line (no wrapping)
- * - Popup appears directly above and centered on the Our Tenor button (fixed positioning)
- * - Hover (desktop) and click (touch) behaviors; Esc and outside click close popup
- */
 const Footer = ({ title }) => {
   const { siteInfo } = useGlobal()
   const MAGZINE_FOOTER_LINKS = siteConfig('MAGZINE_FOOTER_LINKS', [], CONFIG)
@@ -34,7 +25,6 @@ const Footer = ({ title }) => {
 
   const [popupStyle, setPopupStyle] = useState({ left: 0, top: 0, visibility: 'hidden' })
 
-  // detect touch device
   useEffect(() => {
     const touch =
       typeof window !== 'undefined' &&
@@ -42,7 +32,6 @@ const Footer = ({ title }) => {
     setIsTouchDevice(Boolean(touch))
   }, [])
 
-  // click outside to close
   useEffect(() => {
     function handleDocClick(e) {
       if (buttonRef.current && buttonRef.current.contains(e.target)) return
@@ -53,7 +42,6 @@ const Footer = ({ title }) => {
     return () => document.removeEventListener('click', handleDocClick)
   }, [])
 
-  // Esc to close
   useEffect(() => {
     function onKey(e) {
       if (e.key === 'Escape') setTenorOpen(false)
@@ -62,7 +50,6 @@ const Footer = ({ title }) => {
     return () => document.removeEventListener('keydown', onKey)
   }, [])
 
-  // compute popup position so it is centered on the Our Tenor button (fixed)
   const computePopupPosition = () => {
     const btn = buttonRef.current
     const popup = popupRef.current
@@ -77,19 +64,13 @@ const Footer = ({ title }) => {
     const viewportWidth = window.innerWidth
     const viewportHeight = window.innerHeight
 
-    // Center popup horizontally on the button center (so it appears directly above the button)
     let left = btnRect.left + btnRect.width / 2 - popupRect.width / 2
     left = Math.max(8, Math.min(left, viewportWidth - popupRect.width - 8))
 
-    // Place popup so it overlaps the button vertically (directly above)
-    // We place it so its bottom edge sits 6px above the button center line,
-    // but ensure it stays within viewport.
     let top = btnRect.top - popupRect.height / 2 - btnRect.height / 2 - 6
-    // If that would push popup off the top, fallback to above the button normally
     if (top < 8) {
       top = btnRect.top - popupRect.height - 8
     }
-    // If still not enough space, place below the button
     if (top + popupRect.height > viewportHeight - 8) {
       top = btnRect.bottom + 8
     }
@@ -97,7 +78,6 @@ const Footer = ({ title }) => {
     setPopupStyle({ left: Math.round(left), top: Math.round(top), visibility: 'visible' })
   }
 
-  // recompute popup position when open and on resize/scroll
   useLayoutEffect(() => {
     if (tenorOpen) {
       computePopupPosition()
@@ -120,7 +100,6 @@ const Footer = ({ title }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenorOpen])
 
-  // hover / click handlers
   const handleMouseEnter = () => {
     if (!isTouchDevice) setTenorOpen(true)
   }
@@ -140,92 +119,57 @@ const Footer = ({ title }) => {
   }
   const handleToggleClick = () => {
     if (isTouchDevice) setTenorOpen((v) => !v)
+    else setTenorOpen((v) => !v)
   }
 
   return (
-    <footer
-      id="footer-bottom"
-      className="z-10 bg-black text-white justify-center m-auto w-full p-6 relative"
-    >
-      {/* page content container used as horizontal center reference */}
-      <div ref={containerRef} className="max-w-screen-3xl w-full mx-auto relative">
-        {/* Top row: left site owner, center Our Tenor (centered), right links.
-            Use flex with no-wrap so they stay on one line; center column is centered via absolute centering. */}
-        <div className="w-full py-6">
-          <div className="relative flex items-center justify-between gap-4 whitespace-nowrap">
-            {/* Left: site owner info (left aligned) */}
-            <div className="flex items-center gap-x-3 flex-shrink-0">
-              <LazyImage
-                src={siteInfo?.icon}
-                className="rounded-full"
-                width={40}
-                alt={siteConfig('AUTHOR')}
-              />
-              <div className="leading-tight">
-                <div className="text-lg">{title}</div>
-                <div className="flex items-center text-sm text-neutral-300">
-                  <i className="fas fa-copyright" />
-                  <a href={siteConfig('LINK')} className="underline font-bold ml-1">
-                    {siteConfig('AUTHOR')}
-                  </a>
-                </div>
-              </div>
+    <footer id="footer-bottom" className="z-10 bg-black text-white w-full p-6 relative">
+      <div ref={containerRef} className="max-w-screen-3xl w-full mx-auto">
+
+        {/* 顶部：图标 + 右侧三行信息（Tide Press / © Tide Press / Our Tenor） */}
+        <div className="flex items-center gap-x-4 py-6">
+          <LazyImage
+            src={siteInfo?.icon}
+            className="rounded-full"
+            width={48}
+            height={48}
+            alt={siteConfig('AUTHOR')}
+          />
+
+          <div className="flex flex-col leading-tight">
+            {/* 第一行：站点名 */}
+            <div className="text-lg font-semibold text-white">{title}</div>
+
+            {/* 第二行：版权 */}
+            <div className="text-sm text-neutral-300 flex items-center">
+              <i className="fas fa-copyright" />
+              <span className="ml-1">{siteConfig('AUTHOR')}</span>
             </div>
 
-            {/* Centered Our Tenor: absolutely centered within the containerRef */}
-            <div
-              className="absolute left-1/2 transform -translate-x-1/2"
-              style={{ pointerEvents: 'none' }}
-            >
-              <div
+            {/* 第三行：Our Tenor（与版权字体一致） */}
+            <div className="mt-1">
+              <button
+                ref={buttonRef}
+                type="button"
+                className="text-sm font-medium text-neutral-300 hover:text-white transition-colors duration-200 select-none"
+                aria-expanded={tenorOpen}
+                aria-haspopup="true"
+                onClick={handleToggleClick}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
-                style={{ pointerEvents: 'auto' }}
               >
-                <button
-                  ref={buttonRef}
-                  type="button"
-                  className="font-bold text-neutral-400 hover:text-white transition-colors duration-200 py-2 select-none"
-                  aria-expanded={tenorOpen}
-                  aria-haspopup="true"
-                  onClick={handleToggleClick}
-                >
-                  Our Tenor
-                </button>
-              </div>
-            </div>
-
-            {/* Right: links (right aligned) */}
-            <div className="flex items-center gap-x-6 flex-shrink-0">
-              <div className="hidden sm:block">
-                <div className="grid grid-cols-2 lg:grid-cols-4 lg:gap-16 gap-8">
-                  {MAGZINE_FOOTER_LINKS?.map((group, index) => {
-                    return (
-                      <div key={index} className="text-right">
-                        <div className="font-bold text-xl text-white lg:pb-8 pb-4">
-                          {group.name}
-                        </div>
-                        <div className="flex flex-col gap-y-2 items-end">
-                          {group?.menus?.map((menu, i) => {
-                            return (
-                              <div key={i}>
-                                <SmartLink href={menu.href} className="hover:underline">
-                                  {menu.title}
-                                </SmartLink>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
+                Our Tenor
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Popup: fixed and centered on the Our Tenor button (so it visually sits directly over it) */}
+        {/* Announcement（如果有） */}
+        <div className="mb-4">
+          <Announcement post={siteInfo?.notice} className="" />
+        </div>
+
+        {/* 弹窗：fixed 定位，居中于 Our Tenor 按钮 */}
         <div
           ref={popupRef}
           onMouseEnter={() => !isTouchDevice && setTenorOpen(true)}
@@ -237,12 +181,12 @@ const Footer = ({ title }) => {
             visibility: popupStyle.visibility,
             zIndex: 9999
           }}
-          className="w-[85vw] sm:w-[450px] lg:w-[600px] text-sm text-[#cccccc] bg-[#333333] p-6 rounded-lg text-left leading-relaxed shadow-2xl border border-neutral-700 pointer-events-auto"
+          className="w-[85vw] sm:w-[420px] lg:w-[520px] text-sm text-[#e6e6e6] bg-[#333333] p-5 rounded-lg leading-relaxed shadow-2xl border border-neutral-700 pointer-events-auto"
         >
-          <p className="mb-3">
+          <p className="mb-2">
             · This platform is intended to bring the perspicacity of the Chinese societies with an academic, philosophical and critical perspectives for the world.
           </p>
-          <p className="mb-3">
+          <p className="mb-2">
             · As a public and supportive community, we want the world to see the unheard voices of the era of China's transformationalisation.
           </p>
           <p className="mb-0">
@@ -250,21 +194,18 @@ const Footer = ({ title }) => {
           </p>
         </div>
 
-        {/* Bottom controls: 3-column grid so DarkModeButton stays centered and AnalyticsBusuanzi appears in bottom-right */}
+        {/* 底部控制区：三列布局（左：CopyRight/PoweredBy；中：DarkMode；右：Analytics/Social） */}
         <div className="py-4 border-t border-gray-800 mt-6">
-          <div className="max-w-screen-3xl w-full mx-auto grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
-            {/* left column */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
             <div className="flex justify-center sm:justify-start items-center gap-x-2">
               <CopyRightDate />
               <PoweredBy />
             </div>
 
-            {/* center column: DarkModeButton centered */}
             <div className="flex justify-center items-center">
               <DarkModeButton className="text-white" />
             </div>
 
-            {/* right column: AnalyticsBusuanzi + SocialButton */}
             <div className="flex justify-center sm:justify-end items-center gap-x-4">
               <div className="flex items-center gap-x-4">
                 <AnalyticsBusuanzi />
@@ -278,6 +219,30 @@ const Footer = ({ title }) => {
         <div className="w-full text-center flex flex-wrap items-center justify-center gap-x-2 text-neutral-500 mt-4">
           <BeiAnSite />
           <BeiAnGongAn />
+        </div>
+
+        {/* 右下可选的 footer links（保留原有链接布局） */}
+        <div className="hidden sm:block mt-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 lg:gap-16 gap-8">
+            {MAGZINE_FOOTER_LINKS?.map((group, index) => {
+              return (
+                <div key={index} className="text-right">
+                  <div className="font-bold text-xl text-white lg:pb-8 pb-4">{group.name}</div>
+                  <div className="flex flex-col gap-y-2 items-end">
+                    {group?.menus?.map((menu, i) => {
+                      return (
+                        <div key={i}>
+                          <SmartLink href={menu.href} className="hover:underline">
+                            {menu.title}
+                          </SmartLink>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
     </footer>
