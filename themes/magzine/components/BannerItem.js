@@ -22,7 +22,7 @@ export default function BannerItem() {
   }
 
   return (
-    <div className='flex flex-col p-5 gap-y-5 dark items-center justify-between w-full bg-cyan-600 text-white'>
+    <div className='flex flex-col p-5 gap-y-5 dark items-center justify-between w-full bg-cyan-600 text-center text-white'>
       {/* 首屏导航按钮 */}
       <h2 className='text-2xl font-semibold'>{title}</h2>
       <h3 className='text-sm'>{description}</h3>
