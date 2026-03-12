@@ -6,7 +6,7 @@ import Announcement from './Announcement'
 export default function CTA({ notice }) {
   return (
     <section
-      className="w-full bg-cyan-600 dark:bg-hexo-black-gray text-black"
+      className="w-full bg-cyan-600 dark:bg-hexo-black-gray text-white"
       aria-label="site announcement"
       style={{ paddingTop: '1rem', paddingBottom: '1rem' }} // 更紧凑的 py
     >
@@ -18,7 +18,7 @@ export default function CTA({ notice }) {
           letterSpacing: '-0.3px'
         }}
       >
-        <Announcement post={notice} className="text-center text-grey" />
+        <Announcement post={notice} className="text-center text-white" />
       </div>
     </section>
   )
