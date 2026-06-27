@@ -82,9 +82,9 @@ const CONFIG = {
   /** 顶栏调色板内的色相滑块等；false 时展开调色板无控件 */
   FUWARI_WIDGET_THEME_COLOR_SWITCHER: true,
   /** 默认品牌色相 0–360 */
-  FUWARI_THEME_COLOR_HUE: 52,
+  FUWARI_THEME_COLOR_HUE: 200,
   /** true：隐藏顶栏调色盘按钮，无法在站内改色相 */
-  FUWARI_THEME_COLOR_FIXED: false,
+  FUWARI_THEME_COLOR_FIXED: true,
   /** 文章页右侧浮动区：跳转评论区按钮 */
   FUWARI_WIDGET_TO_COMMENT: true,
   /** 文章页右侧浮动区：深色模式切换 */
@@ -96,23 +96,23 @@ const CONFIG = {
   // 联系卡片（侧栏，可翻转）
   // ---------------------------------------------------------------------------
   /** 正面标题 */
-  FUWARI_CONTACT_TITLE: '社区',
+  FUWARI_CONTACT_TITLE: '投稿入口',
   /** 正面说明文案 */
   FUWARI_CONTACT_DESCRIPTION: '欢迎交流与反馈',
   /** 正面右上角徽标 */
   FUWARI_CONTACT_FRONT_BADGE: 'Community',
   /** 跳转 URL（外链或站内路径） */
-  FUWARI_CONTACT_URL: 'https://docs.tangly1024.com/article/chat-community',
+  FUWARI_CONTACT_URL: 'mailto://tidewavereport@gmail.com',
   /** 正面行动文案（如「联系我们 →」） */
   FUWARI_CONTACT_TEXT: '查看',
   /** 是否使用正反面翻转卡片 */
   FUWARI_CONTACT_FLIP_CARD: true,
   /** 背面标题 */
-  FUWARI_CONTACT_BACK_TITLE: '支持内容',
+  FUWARI_CONTACT_BACK_TITLE: 'Submit',
   /** 背面说明 */
-  FUWARI_CONTACT_BACK_DESCRIPTION: '可提交问题、建议与合作意向。',
+  FUWARI_CONTACT_BACK_DESCRIPTION: 'Submit your works, suggestions and enquiries',
   /** 背面行动文案 */
-  FUWARI_CONTACT_BACK_TEXT: '查看',
+  FUWARI_CONTACT_BACK_TEXT: 'Click',
 
   // ---------------------------------------------------------------------------
   // 全站动效（按需开启，可能影响性能）
