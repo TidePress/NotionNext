@@ -61,7 +61,7 @@ const PostCard = ({ post }) => {
         className={`fuwari-post-card-grid w-full min-w-0 md:grid md:gap-4 md:items-stretch min-h-[178px]`}
         style={{ gridTemplateColumns }}>
         <div className='min-w-0 flex-1 md:pr-1'>
-          <h2 className='fuwari-post-title text-[2rem] font-bold mb-1.5 leading-tight'>
+          <h2 className='fuwari-post-title text-[1.5rem] font-bold mb-1.5 leading-tight'>
             <SmartLink href={post.href || `/${post.slug}`} className='hover:opacity-90 transition-opacity'>
               {post.title}
             </SmartLink>
