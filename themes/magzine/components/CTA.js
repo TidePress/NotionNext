@@ -1,20 +1,25 @@
 import Announcement from './Announcement'
 
 /**
- * CTA，用于创建一个呼吁用户行动的部分（Call To Action，简称 CTA）。
- * 该组件通过以下方式激励用户进行特定操作
- * 用户的公告栏内容将在此显示
- **/
+ * CTA：外层负责整行背景，内层限制内容宽度并居中（maxWidth: 320px）
+ */
 export default function CTA({ notice }) {
   return (
-    <>
-      {/* 底部 */}
-      <Announcement
-        post={notice}
-        className={
-          'cta text-center text-black bg-[#7BE986] dark:bg-hexo-black-gray py-16'
-        }
-      />
-    </>
+    <section
+      className="w-full bg-cyan-600 dark:bg-hexo-black-gray text-white"
+      aria-label="site announcement"
+      style={{ paddingTop: '1rem', paddingBottom: '1rem' }} // 更紧凑的 py
+    >
+      <div
+        className="mx-auto px-4"
+        style={{
+          maxWidth: '450px', // <- 更窄
+          lineHeight: 1.12,
+          letterSpacing: '-0.3px'
+        }}
+      >
+        <Announcement post={notice} className="text-center text-white" />
+      </div>
+    </section>
   )
 }
