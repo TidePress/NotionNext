@@ -229,7 +229,7 @@ const Style = () => {
         border-radius: 1rem;
       }
       #theme-fuwari .fuwari-post-title {
-        font-size: 1rem !important;
+        font-size: 0.8rem !important;
       }
       #theme-fuwari .fuwari-summary {
         -webkit-line-clamp: 2;
